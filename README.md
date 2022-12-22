@@ -1,3 +1,5 @@
+[![CI](https://github.com/pgollangi/firestore-grafana-datasource/actions/workflows/ci.yml/badge.svg)](https://github.com/pgollangi/firestore-grafana-datasource/actions/workflows/ci.yml)
+[![Release](https://github.com/pgollangi/firestore-grafana-datasource/actions/workflows/release.yml/badge.svg)](https://github.com/pgollangi/firestore-grafana-datasource/actions/workflows/release.yml)
 # firestore-grafana-datasource
 
 [Google Firestore](https://cloud.google.com/firestore) Data Source Plugin for [Grafana](https://grafana.com/).
