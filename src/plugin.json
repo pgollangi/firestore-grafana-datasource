@@ -6,18 +6,31 @@
   "metrics": true,
   "backend": true,
   "executable": "gpx_firestore",
+  "category": "cloud",
   "info": {
     "description": "Google firestore datasource plugin for grafana",
     "author": {
-      "name": "pgollangi"
+      "name": "pgollangi",
+      "url": "https://github.com/pgollangi"
     },
-    "keywords": ["datasource", "firestore", "gcp"],
+    "keywords": [
+      "datasource",
+      "firestore",
+      "gcp"
+    ],
     "logos": {
       "small": "img/logo.svg",
       "large": "img/logo.svg"
     },
     "links": [],
-    "screenshots": [],
+    "screenshots": [
+      {
+        "path": "screenshots/firestore-datasource-configuration.png"
+      },
+      {
+        "path": "screenshots/query-with-firestore-datasource.png"
+      }
+    ],
     "version": "%VERSION%",
     "updated": "%TODAY%"
   },
