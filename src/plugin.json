@@ -1,0 +1,28 @@
+{
+  "$schema": "https://raw.githubusercontent.com/grafana/grafana/master/docs/sources/developers/plugins/plugin.schema.json",
+  "type": "datasource",
+  "name": "Firestore",
+  "id": "pgollangi-firestore-datasource",
+  "metrics": true,
+  "backend": true,
+  "executable": "gpx_firestore",
+  "info": {
+    "description": "Google firestore datasource plugin for grafana",
+    "author": {
+      "name": "pgollangi"
+    },
+    "keywords": ["datasource", "firestore", "gcp"],
+    "logos": {
+      "small": "img/logo.svg",
+      "large": "img/logo.svg"
+    },
+    "links": [],
+    "screenshots": [],
+    "version": "%VERSION%",
+    "updated": "%TODAY%"
+  },
+  "dependencies": {
+    "grafanaDependency": "^9.2.5",
+    "plugins": []
+  }
+}

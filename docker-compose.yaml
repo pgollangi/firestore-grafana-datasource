@@ -1,0 +1,16 @@
+version: '3.0'
+
+services:
+  grafana:
+    container_name: 'pgollangi-firestore-datasource'
+    build:
+      context: ./.config
+      args:
+        grafana_version: ${GRAFANA_VERSION:-9.2.5}
+    ports:
+      - 3000:3000/tcp
+    volumes:
+      - ./dist:/var/lib/grafana/plugins/pgollangi-firestore-datasource
+      - ./provisioning:/etc/grafana/provisioning
+    environment:
+      - GF_LOG_LEVEL=debug
