@@ -1,9 +1,6 @@
-import React, { ChangeEvent, PureComponent, FormEvent } from 'react';
+import React, { ChangeEvent, PureComponent } from 'react';
 import {
-  Form, InlineField, InlineFieldRow, Input, InlineSwitch, FieldArray,
-  Select,
-  IconButton,
-  HorizontalGroup
+  Form, InlineField, InlineFieldRow, Input
 } from '@grafana/ui';
 import { FieldValues } from "react-hook-form"
 import { QueryEditorProps } from '@grafana/data';

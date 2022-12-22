@@ -1,5 +1,5 @@
 import React, { ChangeEvent, PureComponent } from 'react';
-import { TextArea, InlineField, Input, FieldSet } from '@grafana/ui';
+import { TextArea, InlineField, Input } from '@grafana/ui';
 import { DataSourcePluginOptionsEditorProps } from '@grafana/data';
 import { MyDataSourceOptions } from '../types';
 
