@@ -52,7 +52,7 @@ export class ConfigEditor extends PureComponent<Props, State> {
                 <TextArea
                   value={jsonData.serviceAccount || ''}
                   label="Service Account"
-                  placeholder="secure json field (backend only)"
+                  placeholder="Paste Service Account here"
                   onChange={this.onServiceAccountChange}
                   cols={80}
                   rows={10}
