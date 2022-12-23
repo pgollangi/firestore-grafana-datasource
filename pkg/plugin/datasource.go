@@ -5,6 +5,7 @@ import (
 	vkit "cloud.google.com/go/firestore/apiv1"
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"github.com/grafana/grafana-plugin-sdk-go/backend"
 	"github.com/grafana/grafana-plugin-sdk-go/backend/instancemgmt"
@@ -88,8 +89,7 @@ type FirestoreQuery struct {
 }
 
 type FirestoreSettings struct {
-	ProjectId      string
-	ServiceAccount string
+	ProjectId string
 }
 
 func (d *Datasource) query(ctx context.Context, pCtx backend.PluginContext, query backend.DataQuery) backend.DataResponse {
@@ -105,8 +105,9 @@ func (d *Datasource) query(ctx context.Context, pCtx backend.PluginContext, quer
 
 	fsClient, err := newFirestoreClient(ctx, pCtx)
 	if err != nil {
-		return backend.ErrDataResponse(backend.StatusBadRequest, "newFirestoreClient: "+err.Error())
+		return backend.ErrDataResponse(backend.StatusBadRequest, "Invalid data source configuration: "+err.Error())
 	}
+	defer fsClient.Close()
 
 	if len(qm.CollectionPath) > 0 {
 
@@ -155,6 +156,8 @@ func (d *Datasource) query(ctx context.Context, pCtx backend.PluginContext, quer
 					case float64:
 						values = []float64{}
 						break
+					case map[string]interface{}, []map[string]interface{}, []interface{}:
+						values = []json.RawMessage{}
 					default:
 						values = []string{}
 					}
@@ -167,12 +170,12 @@ func (d *Datasource) query(ctx context.Context, pCtx backend.PluginContext, quer
 				case float64:
 					fieldValues[key] = append(values.([]float64), val.(float64))
 					break
-				case map[string]interface{}, []map[string]interface{}:
+				case map[string]interface{}, []map[string]interface{}, []interface{}:
 					jsonVal, err := json.Marshal(val)
 					if err != nil {
 						return backend.ErrDataResponse(backend.StatusBadRequest, "json.Marshal : "+key+err.Error())
 					} else {
-						fieldValues[key] = append(values.([]string), string(jsonVal))
+						fieldValues[key] = append(values.([]json.RawMessage), json.RawMessage(jsonVal))
 					}
 					break
 				default:
@@ -200,19 +203,30 @@ func newFirestoreClient(ctx context.Context, pCtx backend.PluginContext) (*fires
 	err := json.Unmarshal(pCtx.DataSourceInstanceSettings.JSONData, &settings)
 	if err != nil {
 		log.DefaultLogger.Error("Error parsing settings ", err)
-		return nil, err
+		return nil, fmt.Errorf("ProjectID: %v", err)
 	}
-	creds, err := google.CredentialsFromJSON(ctx, []byte(settings.ServiceAccount),
+
+	if len(settings.ProjectId) == 0 {
+		return nil, errors.New("project Id is required")
+	}
+
+	serviceAccount := pCtx.DataSourceInstanceSettings.DecryptedSecureJSONData["serviceAccount"]
+
+	if !json.Valid([]byte(serviceAccount)) {
+		return nil, errors.New("invalid service account, it is expected to be a JSON")
+	}
+
+	creds, err := google.CredentialsFromJSON(ctx, []byte(serviceAccount),
 		vkit.DefaultAuthScopes()...,
 	)
 	if err != nil {
 		log.DefaultLogger.Error("google.CredentialsFromJSON ", err)
-		return nil, err
+		return nil, fmt.Errorf("ServiceAccount: %v", err)
 	}
 	client, err := firestore.NewClient(ctx, settings.ProjectId, option.WithCredentials(creds))
 	if err != nil {
 		log.DefaultLogger.Error("firestore.NewClient ", err)
-		return nil, err
+		return nil, fmt.Errorf("firestore.NewClient: %v", err)
 	}
 	return client, nil
 }
@@ -232,13 +246,14 @@ func (d *Datasource) CheckHealth(ctx context.Context, req *backend.CheckHealthRe
 	client, healthErr := newFirestoreClient(ctx, req.PluginContext)
 
 	if healthErr == nil {
+		defer client.Close()
 		collections := client.Collections(ctx)
 		collection, err := collections.Next()
 		if err == nil {
 			log.DefaultLogger.Debug("First collections: ", collection.ID)
 		} else {
 			log.DefaultLogger.Error("client.Collections ", err)
-			healthErr = err
+			healthErr = fmt.Errorf("firestore.Collections: %v", err)
 		}
 	}
 

@@ -9,14 +9,22 @@ Grafana Firestore Data Source Plugin enables integrating data on Firestore on to
 ## Features
 - [x] Use Google Firestore as data source for Grafana dashboards
 - [x] Configure Firestore data source with GCP `Project Id` and [`Service Account`](https://cloud.google.com/firestore/docs/security/iam) for authentication
-- [x] Query Firestore [collections](https://firebase.google.com/docs/firestore/data-model#collections)
-- [ ] Query [Collection Groups](https://firebase.blog/posts/2019/06/understanding-collection-group-queries)
+- [x] Store `Service Account` data source configuration in Grafana encrypted storage [Secure JSON Data](https://grafana.com/docs/grafana/latest/developers/plugins/add-authentication-for-data-source-plugins/#encrypt-data-source-configuration)
+- [x] Query Firestore [collections](https://firebase.google.com/docs/firestore/data-model#collections) and path to collections
+- [x] Auto detect data types: `string`, `number`, `boolean`, `json`
 - [ ] Query selected fields from collection
 - [ ] Order query results
 - [ ] Limit query results
 - [ ] Count query results
-- [ ] Use [Secure JSON Data](https://grafana.com/docs/grafana/latest/developers/plugins/add-authentication-for-data-source-plugins/#encrypt-data-source-configuration) to save `Service Account` Firestore data source configuration
-- [ ] Consider [Grafafa global variables](https://grafana.com/docs/grafana/latest/dashboards/variables/add-template-variables/#global-variables) when querying resources.
+- [ ] Query [Collection Groups](https://firebase.blog/posts/2019/06/understanding-collection-group-queries)
+- [ ] Use of [Grafafa global variables](https://grafana.com/docs/grafana/latest/dashboards/variables/add-template-variables/#global-variables) in queries.
+
+### Firestore data source configuration
+
+![](src/screenshots/firestore-datasource-configuration.png)
+
+### Using datasource 
+![](src/screenshots/query-with-firestore-datasource.png)
 
 ## Getting started
 
@@ -101,38 +109,6 @@ Grafana Firestore Data Source Plugin enables integrating data on Firestore on to
    mage -l
    ```
 
-# Distributing plugin
-
-When distributing a Grafana plugin either within the community or privately the plugin must be signed so the Grafana application can verify its authenticity. This can be done with the `@grafana/sign-plugin` package.
-
-_Note: It's not necessary to sign a plugin during development. The docker development environment that is scaffolded with `@grafana/create-plugin` caters for running the plugin without a signature._
-
-## Initial steps
-
-Before signing a plugin please read the Grafana [plugin publishing and signing criteria](https://grafana.com/docs/grafana/latest/developers/plugins/publishing-and-signing-criteria/) documentation carefully.
-
-`@grafana/create-plugin` has added the necessary commands and workflows to make signing and distributing a plugin via the grafana plugins catalog as straightforward as possible.
-
-Before signing a plugin for the first time please consult the Grafana [plugin signature levels](https://grafana.com/docs/grafana/latest/developers/plugins/sign-a-plugin/#plugin-signature-levels) documentation to understand the differences between the types of signature level.
-
-1. Create a [Grafana Cloud account](https://grafana.com/signup).
-2. Make sure that the first part of the plugin ID matches the slug of your Grafana Cloud account.
-   - _You can find the plugin ID in the plugin.json file inside your plugin directory. For example, if your account slug is `acmecorp`, you need to prefix the plugin ID with `acmecorp-`._
-3. Create a Grafana Cloud API key with the `PluginPublisher` role.
-4. Keep a record of this API key as it will be required for signing a plugin
-
-## Signing a plugin
-
-### Using Github actions release workflow
-
-If the plugin is using the github actions supplied with `@grafana/create-plugin` signing a plugin is included out of the box. The [release workflow](./.github/workflows/release.yml) can prepare everything to make submitting your plugin to Grafana as easy as possible. Before being able to sign the plugin however a secret needs adding to the Github repository.
-
-1. Please navigate to "settings > secrets > actions" within your repo to create secrets.
-2. Click "New repository secret"
-3. Name the secret "GRAFANA_API_KEY"
-4. Paste your Grafana Cloud API key in the Secret field
-5. Click "Add secret"
-
 #### Push a version tag
 
 To trigger the workflow we need to push a version tag to github. This can be achieved with the following steps:
@@ -141,10 +117,13 @@ To trigger the workflow we need to push a version tag to github. This can be ach
 2. Run `git push origin main --follow-tags`
 
 
-## Learn more
+## Contributing
+Thanks for considering contributing to this project!
 
-Below you can find source code for existing app plugins and other related documentation.
+Please read the [Contributions](.github/CONTRIBUTING.md) and [Code of conduct](.github/CODE_OF_CONDUCT.md). 
 
-- [Basic data source plugin example](https://github.com/grafana/grafana-plugin-examples/tree/master/examples/datasource-basic#readme)
-- [Plugin.json documentation](https://grafana.com/docs/grafana/latest/developers/plugins/metadata/)
-- [How to sign a plugin?](https://grafana.com/docs/grafana/latest/developers/plugins/sign-a-plugin/)
+Feel free to open an issue or submit a pull request!
+
+## License
+
+[MIT](LICENSE)
