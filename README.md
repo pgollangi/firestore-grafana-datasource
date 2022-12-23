@@ -4,17 +4,17 @@
 
 [Google Firestore](https://cloud.google.com/firestore) Data Source Plugin for [Grafana](https://grafana.com/).
 
-Grafana Firestore Data Source Plugin enables integrating data on Firestore on to Grafana dashboards.
+Grafana Firestore Data Source Plugin enables integrating data on Firestore onto Grafana dashboards.
 
 ![](assets/firestore-grafana-datasource.svg)
 
 ## Features
-- [x] Use Google Firestore as data source for Grafana dashboards
+- [x] Use Google Firestore as a data source for Grafana dashboards
 - [x] Configure Firestore data source with GCP `Project Id` and [`Service Account`](https://cloud.google.com/firestore/docs/security/iam) for authentication
 - [x] Store `Service Account` data source configuration in Grafana encrypted storage [Secure JSON Data](https://grafana.com/docs/grafana/latest/developers/plugins/add-authentication-for-data-source-plugins/#encrypt-data-source-configuration)
 - [x] Query Firestore [collections](https://firebase.google.com/docs/firestore/data-model#collections) and path to collections
 - [x] Auto detect data types: `string`, `number`, `boolean`, `json`
-- [ ] Query selected fields from collection
+- [ ] Query selected fields from the collection
 - [ ] Order query results
 - [ ] Limit query results
 - [ ] Count query results
