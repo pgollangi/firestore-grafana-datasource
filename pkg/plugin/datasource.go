@@ -12,8 +12,9 @@ import (
 	"github.com/grafana/grafana-plugin-sdk-go/backend/log"
 	"github.com/grafana/grafana-plugin-sdk-go/data"
 	"golang.org/x/oauth2/google"
-	"google.golang.org/api/iterator"
 	"google.golang.org/api/option"
+
+	"github.com/pgollangi/fireql"
 )
 
 // Make sure Datasource implements required interfaces. This is important to do
@@ -86,6 +87,8 @@ type FirestoreQuery struct {
 	OrderBy        []FirestoreQueryOrderBy
 	Limit          json.Number
 	IsCount        bool
+
+	Query string
 }
 
 type FirestoreSettings struct {
@@ -103,50 +106,38 @@ func (d *Datasource) query(ctx context.Context, pCtx backend.PluginContext, quer
 	}
 	log.DefaultLogger.Info("FirestoreQuery: ", qm)
 
-	fsClient, err := newFirestoreClient(ctx, pCtx)
+	var settings FirestoreSettings
+	err = json.Unmarshal(pCtx.DataSourceInstanceSettings.JSONData, &settings)
 	if err != nil {
-		return backend.ErrDataResponse(backend.StatusBadRequest, "Invalid data source configuration: "+err.Error())
+		log.DefaultLogger.Error("Error parsing settings ", err)
+		return backend.ErrDataResponse(backend.StatusBadRequest, "ProjectID: "+err.Error())
 	}
-	defer fsClient.Close()
 
-	if len(qm.CollectionPath) > 0 {
+	if len(settings.ProjectId) == 0 {
+		return backend.ErrDataResponse(backend.StatusBadRequest, "ProjectID is required")
+	}
 
-		q := fsClient.Collection(qm.CollectionPath).Query
+	serviceAccount := pCtx.DataSourceInstanceSettings.DecryptedSecureJSONData["serviceAccount"]
 
-		if len(qm.Select) > 0 {
-			q = q.Select(qm.Select...)
-		}
+	fQuery, err := fireql.NewFireQLWithServiceAccountJSON(settings.ProjectId, serviceAccount)
+	if err != nil {
+		return backend.ErrDataResponse(backend.StatusBadRequest, "fireql.NewFireQL: "+err.Error())
+	}
 
-		for _, condition := range qm.Where {
-			q = q.Where(condition.Path, condition.Operator, condition.Value)
-		}
-		for _, orderBy := range qm.OrderBy {
-			q = q.OrderBy(orderBy.Path, orderBy.Direction)
-		}
-		limit, err := qm.Limit.Int64()
+	log.DefaultLogger.Info("Created fireql.NewFireQLWithServiceAccountJSON")
+
+	if len(qm.Query) > 0 {
+
+		log.DefaultLogger.Info("Executing query", qm.Query)
+		result, err := fQuery.Execute(qm.Query)
 		if err != nil {
-			return backend.ErrDataResponse(backend.StatusBadRequest, "qm.Limit.Int64: "+err.Error())
-		}
-		if limit > 0 {
-			q = q.Limit(int(limit))
-		}
-
-		log.DefaultLogger.Info("Query ready!")
-		documentItr := q.Documents(ctx)
-		if err != nil {
-			return backend.ErrDataResponse(backend.StatusBadRequest, "Query.Documents.GetAll : "+err.Error())
+			return backend.ErrDataResponse(backend.StatusBadRequest, "fireql.Execute: "+err.Error())
 		}
 
 		fieldValues := make(map[string]interface{})
 
-		for {
-			document, err := documentItr.Next()
-			if err == iterator.Done {
-				break
-			}
-			//values["Id"] = append(values["Id"], document.Ref.ID)
-			data := document.Data()
-			for key, val := range data {
+		for _, rows := range result.Records {
+			for key, val := range rows {
 				values, ok := fieldValues[key]
 				if !ok {
 					switch val.(type) {
@@ -210,20 +201,23 @@ func newFirestoreClient(ctx context.Context, pCtx backend.PluginContext) (*fires
 		return nil, errors.New("project Id is required")
 	}
 
+	var options []option.ClientOption
 	serviceAccount := pCtx.DataSourceInstanceSettings.DecryptedSecureJSONData["serviceAccount"]
 
-	if !json.Valid([]byte(serviceAccount)) {
-		return nil, errors.New("invalid service account, it is expected to be a JSON")
+	if len(serviceAccount) > 0 {
+		if !json.Valid([]byte(serviceAccount)) {
+			return nil, errors.New("invalid service account, it is expected to be a JSON")
+		}
+		creds, err := google.CredentialsFromJSON(ctx, []byte(serviceAccount),
+			vkit.DefaultAuthScopes()...,
+		)
+		if err != nil {
+			log.DefaultLogger.Error("google.CredentialsFromJSON ", err)
+			return nil, fmt.Errorf("ServiceAccount: %v", err)
+		}
+		options = append(options, option.WithCredentials(creds))
 	}
-
-	creds, err := google.CredentialsFromJSON(ctx, []byte(serviceAccount),
-		vkit.DefaultAuthScopes()...,
-	)
-	if err != nil {
-		log.DefaultLogger.Error("google.CredentialsFromJSON ", err)
-		return nil, fmt.Errorf("ServiceAccount: %v", err)
-	}
-	client, err := firestore.NewClient(ctx, settings.ProjectId, option.WithCredentials(creds))
+	client, err := firestore.NewClient(ctx, settings.ProjectId, options...)
 	if err != nil {
 		log.DefaultLogger.Error("firestore.NewClient ", err)
 		return nil, fmt.Errorf("firestore.NewClient: %v", err)

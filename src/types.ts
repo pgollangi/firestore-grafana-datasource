@@ -12,12 +12,13 @@ export interface FirestoreQueryOrderBy{
 }
 
 export interface FirestoreQuery extends DataQuery {
-  collectionPath: string;
+  collectionPath?: string;
   select?: string[]
   where?: FirestoreQueryCondition[]
   orderBy?:  FirestoreQueryOrderBy[]
   limit?: number
   isCount?: boolean
+  query: string
 }
 
 export const DEFAULT_QUERY: Partial<FirestoreQuery> = {
