@@ -14,6 +14,7 @@ import (
 	"golang.org/x/oauth2/google"
 	"google.golang.org/api/iterator"
 	"google.golang.org/api/option"
+	"time"
 )
 
 // Make sure Datasource implements required interfaces. This is important to do
@@ -101,7 +102,7 @@ func (d *Datasource) query(ctx context.Context, pCtx backend.PluginContext, quer
 	if err != nil {
 		return backend.ErrDataResponse(backend.StatusBadRequest, "json unmarshal: "+err.Error())
 	}
-	log.DefaultLogger.Info("FirestoreQuery: ", qm)
+	log.DefaultLogger.Debug("FirestoreQuery: ", qm)
 
 	fsClient, err := newFirestoreClient(ctx, pCtx)
 	if err != nil {
@@ -131,7 +132,7 @@ func (d *Datasource) query(ctx context.Context, pCtx backend.PluginContext, quer
 			q = q.Limit(int(limit))
 		}
 
-		log.DefaultLogger.Info("Query ready!")
+		log.DefaultLogger.Debug("Query ready!")
 		documentItr := q.Documents(ctx)
 		if err != nil {
 			return backend.ErrDataResponse(backend.StatusBadRequest, "Query.Documents.GetAll : "+err.Error())
@@ -156,6 +157,9 @@ func (d *Datasource) query(ctx context.Context, pCtx backend.PluginContext, quer
 					case float64:
 						values = []float64{}
 						break
+					case time.Time:
+						values = []time.Time{}
+						break
 					case map[string]interface{}, []map[string]interface{}, []interface{}:
 						values = []json.RawMessage{}
 					default:
@@ -169,6 +173,9 @@ func (d *Datasource) query(ctx context.Context, pCtx backend.PluginContext, quer
 					break
 				case float64:
 					fieldValues[key] = append(values.([]float64), val.(float64))
+					break
+				case time.Time:
+					fieldValues[key] = append(values.([]time.Time), val.(time.Time))
 					break
 				case map[string]interface{}, []map[string]interface{}, []interface{}:
 					jsonVal, err := json.Marshal(val)
@@ -261,11 +268,6 @@ func (d *Datasource) CheckHealth(ctx context.Context, req *backend.CheckHealthRe
 		status = backend.HealthStatusError
 		message = healthErr.Error()
 	}
-
-	//if rand.Int()%2 == 0 {
-	//	status = backend.HealthStatusError
-	//	message = "randomized error"
-	//}
 
 	return &backend.CheckHealthResult{
 		Status:  status,

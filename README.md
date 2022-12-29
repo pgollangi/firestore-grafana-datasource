@@ -13,7 +13,7 @@ Grafana Firestore Data Source Plugin enables integrating data on Firestore onto 
 - [x] Configure Firestore data source with GCP `Project Id` and [`Service Account`](https://cloud.google.com/firestore/docs/security/iam) for authentication
 - [x] Store `Service Account` data source configuration in Grafana encrypted storage [Secure JSON Data](https://grafana.com/docs/grafana/latest/developers/plugins/add-authentication-for-data-source-plugins/#encrypt-data-source-configuration)
 - [x] Query Firestore [collections](https://firebase.google.com/docs/firestore/data-model#collections) and path to collections
-- [x] Auto detect data types: `string`, `number`, `boolean`, `json`
+- [x] Auto detect data types: `string`, `number`, `boolean`, `json`, `time.Time`
 - [ ] Query selected fields from the collection
 - [ ] Order query results
 - [ ] Limit query results
@@ -122,7 +122,7 @@ To trigger the workflow we need to push a version tag to github. This can be ach
 ## Contributing
 Thanks for considering contributing to this project!
 
-Please read the [Contributions](.github/CONTRIBUTING.md) and [Code of conduct](.github/CODE_OF_CONDUCT.md). 
+Please read the [Contributions](CONTRIBUTING.md) and [Code of conduct](CODE_OF_CONDUCT.md). 
 
 Feel free to open an issue or submit a pull request!
 
