@@ -15,6 +15,7 @@ import (
 	"google.golang.org/api/option"
 
 	"github.com/pgollangi/fireql"
+	"time"
 )
 
 // Make sure Datasource implements required interfaces. This is important to do
@@ -104,7 +105,7 @@ func (d *Datasource) query(ctx context.Context, pCtx backend.PluginContext, quer
 	if err != nil {
 		return backend.ErrDataResponse(backend.StatusBadRequest, "json unmarshal: "+err.Error())
 	}
-	log.DefaultLogger.Info("FirestoreQuery: ", qm)
+	log.DefaultLogger.Debug("FirestoreQuery: ", qm)
 
 	var settings FirestoreSettings
 	err = json.Unmarshal(pCtx.DataSourceInstanceSettings.JSONData, &settings)
@@ -147,6 +148,9 @@ func (d *Datasource) query(ctx context.Context, pCtx backend.PluginContext, quer
 					case float64:
 						values = []float64{}
 						break
+					case time.Time:
+						values = []time.Time{}
+						break
 					case map[string]interface{}, []map[string]interface{}, []interface{}:
 						values = []json.RawMessage{}
 					default:
@@ -160,6 +164,9 @@ func (d *Datasource) query(ctx context.Context, pCtx backend.PluginContext, quer
 					break
 				case float64:
 					fieldValues[key] = append(values.([]float64), val.(float64))
+					break
+				case time.Time:
+					fieldValues[key] = append(values.([]time.Time), val.(time.Time))
 					break
 				case map[string]interface{}, []map[string]interface{}, []interface{}:
 					jsonVal, err := json.Marshal(val)
@@ -255,11 +262,6 @@ func (d *Datasource) CheckHealth(ctx context.Context, req *backend.CheckHealthRe
 		status = backend.HealthStatusError
 		message = healthErr.Error()
 	}
-
-	//if rand.Int()%2 == 0 {
-	//	status = backend.HealthStatusError
-	//	message = "randomized error"
-	//}
 
 	return &backend.CheckHealthResult{
 		Status:  status,
