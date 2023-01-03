@@ -1,23 +1,6 @@
 import { DataQuery, DataSourceJsonData } from '@grafana/data';
 
-export interface FirestoreQueryCondition {
-  path: string
-  operator: string
-  value: string
-}
-
-export interface FirestoreQueryOrderBy{
-  path:  string
-  direction: number // 1 for ASCENDING, 2 for DESCENDING
-}
-
 export interface FirestoreQuery extends DataQuery {
-  collectionPath?: string;
-  select?: string[]
-  where?: FirestoreQueryCondition[]
-  orderBy?:  FirestoreQueryOrderBy[]
-  limit?: number
-  isCount?: boolean
   query: string
 }
 

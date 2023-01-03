@@ -14,13 +14,13 @@ export class QueryEditor extends PureComponent<Props> {
   timeoutId: NodeJS.Timeout | undefined
   onCollectionChange = (event: ChangeEvent<HTMLInputElement>) => {
     const { onChange, query, onRunQuery } = this.props;
-    onChange({ ...query, collectionPath: event.target.value, limit: 0 });
+    onChange({ ...query });
     this.runQuery(onRunQuery)
   };
 
   onQueryChange = (newQuery: string) => {
     const { onChange, query, onRunQuery } = this.props;
-    onChange({ ...query, query: newQuery, limit: 0 });
+    onChange({ ...query, query: newQuery});
     this.runQuery(onRunQuery)
   };
 
@@ -48,7 +48,6 @@ export class QueryEditor extends PureComponent<Props> {
     return (
       <div>
         <div className="gf-form"> 
-
          <QueryField query={query} placeholder="FireQL query" portalOrigin="" onChange={this.onQueryChange}></QueryField>
         </div>
       </div>

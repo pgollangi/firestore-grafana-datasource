@@ -1,12 +1,14 @@
 package plugin
 
 import (
-	"cloud.google.com/go/firestore"
-	vkit "cloud.google.com/go/firestore/apiv1"
 	"context"
 	"encoding/json"
 	"errors"
 	"fmt"
+	"time"
+
+	"cloud.google.com/go/firestore"
+	vkit "cloud.google.com/go/firestore/apiv1"
 	"github.com/grafana/grafana-plugin-sdk-go/backend"
 	"github.com/grafana/grafana-plugin-sdk-go/backend/instancemgmt"
 	"github.com/grafana/grafana-plugin-sdk-go/backend/log"
@@ -15,7 +17,6 @@ import (
 	"golang.org/x/oauth2/google"
 	"google.golang.org/api/iterator"
 	"google.golang.org/api/option"
-	"time"
 )
 
 // Make sure Datasource implements required interfaces. This is important to do
@@ -69,26 +70,7 @@ func (d *Datasource) QueryData(ctx context.Context, req *backend.QueryDataReques
 	return response, nil
 }
 
-type FirestoreQueryCondition struct {
-	Path      string
-	Operator  string
-	Value     string
-	ValueType string
-}
-
-type FirestoreQueryOrderBy struct {
-	Path      string
-	Direction firestore.Direction
-}
-
 type FirestoreQuery struct {
-	CollectionPath string
-	Select         []string
-	Where          []FirestoreQueryCondition
-	OrderBy        []FirestoreQueryOrderBy
-	Limit          json.Number
-	IsCount        bool
-
 	Query string
 }
 
