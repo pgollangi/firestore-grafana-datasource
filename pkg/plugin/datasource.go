@@ -1,20 +1,22 @@
 package plugin
 
 import (
-	"cloud.google.com/go/firestore"
-	vkit "cloud.google.com/go/firestore/apiv1"
 	"context"
 	"encoding/json"
 	"errors"
 	"fmt"
+	"time"
+
+	"cloud.google.com/go/firestore"
+	vkit "cloud.google.com/go/firestore/apiv1"
 	"github.com/grafana/grafana-plugin-sdk-go/backend"
 	"github.com/grafana/grafana-plugin-sdk-go/backend/instancemgmt"
 	"github.com/grafana/grafana-plugin-sdk-go/backend/log"
 	"github.com/grafana/grafana-plugin-sdk-go/data"
+	"github.com/pgollangi/fireql"
 	"golang.org/x/oauth2/google"
 	"google.golang.org/api/iterator"
 	"google.golang.org/api/option"
-	"time"
 )
 
 // Make sure Datasource implements required interfaces. This is important to do
@@ -68,25 +70,8 @@ func (d *Datasource) QueryData(ctx context.Context, req *backend.QueryDataReques
 	return response, nil
 }
 
-type FirestoreQueryCondition struct {
-	Path      string
-	Operator  string
-	Value     string
-	ValueType string
-}
-
-type FirestoreQueryOrderBy struct {
-	Path      string
-	Direction firestore.Direction
-}
-
 type FirestoreQuery struct {
-	CollectionPath string
-	Select         []string
-	Where          []FirestoreQueryCondition
-	OrderBy        []FirestoreQueryOrderBy
-	Limit          json.Number
-	IsCount        bool
+	Query string
 }
 
 type FirestoreSettings struct {
@@ -104,98 +89,110 @@ func (d *Datasource) query(ctx context.Context, pCtx backend.PluginContext, quer
 	}
 	log.DefaultLogger.Debug("FirestoreQuery: ", qm)
 
-	fsClient, err := newFirestoreClient(ctx, pCtx)
+	var settings FirestoreSettings
+	err = json.Unmarshal(pCtx.DataSourceInstanceSettings.JSONData, &settings)
 	if err != nil {
-		return backend.ErrDataResponse(backend.StatusBadRequest, "Invalid data source configuration: "+err.Error())
+		log.DefaultLogger.Error("Error parsing settings ", err)
+		return backend.ErrDataResponse(backend.StatusBadRequest, "ProjectID: "+err.Error())
 	}
-	defer fsClient.Close()
 
-	if len(qm.CollectionPath) > 0 {
+	if len(settings.ProjectId) == 0 {
+		return backend.ErrDataResponse(backend.StatusBadRequest, "ProjectID is required")
+	}
 
-		q := fsClient.Collection(qm.CollectionPath).Query
+	var options []fireql.Option
+	if pCtx.DataSourceInstanceSettings.DecryptedSecureJSONData["serviceAccount"] != "" {
+		options = append(options, fireql.OptionServiceAccount(pCtx.DataSourceInstanceSettings.DecryptedSecureJSONData["serviceAccount"]))
+	}
 
-		if len(qm.Select) > 0 {
-			q = q.Select(qm.Select...)
-		}
+	fQuery, err := fireql.New(settings.ProjectId, options...)
+	if err != nil {
+		return backend.ErrDataResponse(backend.StatusBadRequest, "fireql.NewFireQL: "+err.Error())
+	}
 
-		for _, condition := range qm.Where {
-			q = q.Where(condition.Path, condition.Operator, condition.Value)
-		}
-		for _, orderBy := range qm.OrderBy {
-			q = q.OrderBy(orderBy.Path, orderBy.Direction)
-		}
-		limit, err := qm.Limit.Int64()
+	log.DefaultLogger.Info("Created fireql.NewFireQLWithServiceAccountJSON")
+
+	if len(qm.Query) > 0 {
+
+		log.DefaultLogger.Info("Executing query", qm.Query)
+		result, err := fQuery.Execute(qm.Query)
 		if err != nil {
-			return backend.ErrDataResponse(backend.StatusBadRequest, "qm.Limit.Int64: "+err.Error())
-		}
-		if limit > 0 {
-			q = q.Limit(int(limit))
-		}
-
-		log.DefaultLogger.Debug("Query ready!")
-		documentItr := q.Documents(ctx)
-		if err != nil {
-			return backend.ErrDataResponse(backend.StatusBadRequest, "Query.Documents.GetAll : "+err.Error())
+			return backend.ErrDataResponse(backend.StatusBadRequest, "fireql.Execute: "+err.Error())
 		}
 
 		fieldValues := make(map[string]interface{})
 
-		for {
-			document, err := documentItr.Next()
-			if err == iterator.Done {
-				break
-			}
-			//values["Id"] = append(values["Id"], document.Ref.ID)
-			data := document.Data()
-			for key, val := range data {
-				values, ok := fieldValues[key]
-				if !ok {
+		for idx, column := range result.Columns {
+			var values interface{}
+			if len(result.Records) > 0 {
+				for _, record := range result.Records {
+					val := record[idx]
 					switch val.(type) {
 					case bool:
-						values = []bool{}
+						if values == nil {
+							values = []bool{}
+						}
+						values = append(values.([]bool), val.(bool))
+						break
+					case int:
+						if values == nil {
+							values = []int32{}
+						}
+						values = append(values.([]int32), int32(val.(int)))
+						break
+					case int32:
+						if values == nil {
+							values = []int32{}
+						}
+						values = append(values.([]int32), val.(int32))
+						break
+					case int64:
+						if values == nil {
+							values = []int64{}
+						}
+						values = append(values.([]int64), val.(int64))
 						break
 					case float64:
-						values = []float64{}
+						if values == nil {
+							values = []float64{}
+						}
+						values = append(values.([]float64), val.(float64))
 						break
 					case time.Time:
-						values = []time.Time{}
+						if values == nil {
+							values = []time.Time{}
+						}
+						values = append(values.([]time.Time), val.(time.Time))
 						break
 					case map[string]interface{}, []map[string]interface{}, []interface{}:
-						values = []json.RawMessage{}
+						if values == nil {
+							values = []json.RawMessage{}
+						}
+						jsonVal, err := json.Marshal(val)
+						if err != nil {
+							return backend.ErrDataResponse(backend.StatusBadRequest, "json.Marshal : "+column+err.Error())
+						} else {
+							values = append(values.([]json.RawMessage), json.RawMessage(jsonVal))
+						}
+						break
 					default:
-						values = []string{}
+						if values == nil {
+							values = []string{}
+						}
+						values = append(values.([]string), fmt.Sprintf("%v", val))
 					}
-					fieldValues[key] = values
 				}
-				switch val.(type) {
-				case bool:
-					fieldValues[key] = append(values.([]bool), val.(bool))
-					break
-				case float64:
-					fieldValues[key] = append(values.([]float64), val.(float64))
-					break
-				case time.Time:
-					fieldValues[key] = append(values.([]time.Time), val.(time.Time))
-					break
-				case map[string]interface{}, []map[string]interface{}, []interface{}:
-					jsonVal, err := json.Marshal(val)
-					if err != nil {
-						return backend.ErrDataResponse(backend.StatusBadRequest, "json.Marshal : "+key+err.Error())
-					} else {
-						fieldValues[key] = append(values.([]json.RawMessage), json.RawMessage(jsonVal))
-					}
-					break
-				default:
-					fieldValues[key] = append(values.([]string), fmt.Sprintf("%v", val))
-				}
+			} else {
+				values = []string{}
 			}
+			fieldValues[column] = values
 		}
 
 		// create data frame response.
 		frame := data.NewFrame("response")
-		for field, values := range fieldValues {
+		for _, column := range result.Columns {
 			frame.Fields = append(frame.Fields,
-				data.NewField(field, nil, values),
+				data.NewField(column, nil, fieldValues[column]),
 			)
 		}
 		// add the frames to the response.
@@ -217,20 +214,23 @@ func newFirestoreClient(ctx context.Context, pCtx backend.PluginContext) (*fires
 		return nil, errors.New("project Id is required")
 	}
 
+	var options []option.ClientOption
 	serviceAccount := pCtx.DataSourceInstanceSettings.DecryptedSecureJSONData["serviceAccount"]
 
-	if !json.Valid([]byte(serviceAccount)) {
-		return nil, errors.New("invalid service account, it is expected to be a JSON")
+	if len(serviceAccount) > 0 {
+		if !json.Valid([]byte(serviceAccount)) {
+			return nil, errors.New("invalid service account, it is expected to be a JSON")
+		}
+		creds, err := google.CredentialsFromJSON(ctx, []byte(serviceAccount),
+			vkit.DefaultAuthScopes()...,
+		)
+		if err != nil {
+			log.DefaultLogger.Error("google.CredentialsFromJSON ", err)
+			return nil, fmt.Errorf("ServiceAccount: %v", err)
+		}
+		options = append(options, option.WithCredentials(creds))
 	}
-
-	creds, err := google.CredentialsFromJSON(ctx, []byte(serviceAccount),
-		vkit.DefaultAuthScopes()...,
-	)
-	if err != nil {
-		log.DefaultLogger.Error("google.CredentialsFromJSON ", err)
-		return nil, fmt.Errorf("ServiceAccount: %v", err)
-	}
-	client, err := firestore.NewClient(ctx, settings.ProjectId, option.WithCredentials(creds))
+	client, err := firestore.NewClient(ctx, settings.ProjectId, options...)
 	if err != nil {
 		log.DefaultLogger.Error("firestore.NewClient ", err)
 		return nil, fmt.Errorf("firestore.NewClient: %v", err)
@@ -256,7 +256,7 @@ func (d *Datasource) CheckHealth(ctx context.Context, req *backend.CheckHealthRe
 		defer client.Close()
 		collections := client.Collections(ctx)
 		collection, err := collections.Next()
-		if err == nil {
+		if err == nil || err == iterator.Done {
 			log.DefaultLogger.Debug("First collections: ", collection.ID)
 		} else {
 			log.DefaultLogger.Error("client.Collections ", err)
