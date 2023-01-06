@@ -1,6 +1,6 @@
 import React, { ChangeEvent, PureComponent } from 'react';
 import {
-  QueryField
+  QueryField, Button
   // Form, InlineField, InlineFieldRow, Input
 } from '@grafana/ui';
 // import { FieldValues } from "react-hook-form"
@@ -19,10 +19,15 @@ export class QueryEditor extends PureComponent<Props> {
   };
 
   onQueryChange = (newQuery: string) => {
-    const { onChange, query, onRunQuery } = this.props;
+    const { onChange, query } = this.props;
     onChange({ ...query, query: newQuery});
-    this.runQuery(onRunQuery)
+    // this.runQuery(onRunQuery)
   };
+
+  onRunQuery = () => {
+    const { onRunQuery } = this.props;
+    onRunQuery();
+  }
 
   runQuery = (onRunQuery: () => void) => {
     if (this.timeoutId) {
@@ -49,6 +54,7 @@ export class QueryEditor extends PureComponent<Props> {
       <div>
         <div className="gf-form"> 
          <QueryField query={query} placeholder="FireQL query" portalOrigin="" onChange={this.onQueryChange}></QueryField>
+         <Button style={{marginLeft: "10px"}} onClick={this.onRunQuery}>Run query</Button>
         </div>
       </div>
     );
