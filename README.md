@@ -4,7 +4,13 @@
 
 [Google Firestore](https://cloud.google.com/firestore) Data Source Plugin for [Grafana](https://grafana.com/).
 
-Grafana Firestore Data Source Plugin enables integrating data on Firestore onto Grafana dashboards.
+Grafana Firestore Data Source Plugin enables integrating data on Firestore into Grafana dashboards.
+
+It uses [FireQL](https://github.com/pgollangi/FireQL) to capture user query that translated to issue queries on Firestore and construct results.
+
+> [FireQL](https://github.com/pgollangi/FireQL) is a Go library to query Google Firestore database using SQL syntax.
+
+
 
 ![](assets/firestore-grafana-datasource.svg)
 
@@ -14,11 +20,11 @@ Grafana Firestore Data Source Plugin enables integrating data on Firestore onto 
 - [x] Store `Service Account` data source configuration in Grafana encrypted storage [Secure JSON Data](https://grafana.com/docs/grafana/latest/developers/plugins/add-authentication-for-data-source-plugins/#encrypt-data-source-configuration)
 - [x] Query Firestore [collections](https://firebase.google.com/docs/firestore/data-model#collections) and path to collections
 - [x] Auto detect data types: `string`, `number`, `boolean`, `json`, `time.Time`
-- [ ] Query selected fields from the collection
-- [ ] Order query results
-- [ ] Limit query results
+- [x] Query selected fields from the collection
+- [x] Order query results
+- [x] Limit query results
+- [x] Query [Collection Groups](https://firebase.blog/posts/2019/06/understanding-collection-group-queries)
 - [ ] Count query results
-- [ ] Query [Collection Groups](https://firebase.blog/posts/2019/06/understanding-collection-group-queries)
 - [ ] Use of [Grafafa global variables](https://grafana.com/docs/grafana/latest/dashboards/variables/add-template-variables/#global-variables) in queries.
 
 ### Firestore data source configuration
