@@ -24,10 +24,10 @@ It uses [FireQL](https://github.com/pgollangi/FireQL) to capture user query that
 
 ## Firestore data source configuration
 
-![](screenshots/firestore-datasource-configuration.png)
+![](https://raw.githubusercontent.com/pgollangi/firestore-grafana-datasource/main/src/screenshots/firestore-datasource-configuration.png)
 
 ## Using datasource 
-![](screenshots/query-with-firestore-datasource.png)
+![](https://raw.githubusercontent.com/pgollangi/firestore-grafana-datasource/main/src/screenshots/query-with-firestore-datasource.png)
 
 ## Migration instructions from version `<=0.1.0` to `0.2.0`
 
