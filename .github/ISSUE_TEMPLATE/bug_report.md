@@ -23,16 +23,14 @@ A clear and concise description of what you expected to happen.
 **Screenshots**
 If applicable, add screenshots to help explain your problem.
 
-**Desktop (please complete the following information):**
- - OS: [e.g. iOS]
- - Browser [e.g. chrome, safari]
- - Version [e.g. 22]
+**Versions (please complete the following information):**
+ - Grafana Version: [e.g. v9.2.5]
+ - Plugin Version: [e.g. 0.2.4]
 
-**Smartphone (please complete the following information):**
- - Device: [e.g. iPhone6]
- - OS: [e.g. iOS8.1]
- - Browser [e.g. stock browser, safari]
- - Version [e.g. 22]
+
+**Plugin Debug Logs:**
+
+Insert Debug logs of the grafana plugin
 
 **Additional context**
 Add any other context about the problem here.
