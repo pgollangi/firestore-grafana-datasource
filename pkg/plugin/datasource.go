@@ -78,7 +78,18 @@ type FirestoreSettings struct {
 	ProjectId string
 }
 
-func (d *Datasource) query(ctx context.Context, pCtx backend.PluginContext, query backend.DataQuery) backend.DataResponse {
+func (d *Datasource) query(ctx context.Context, pCtx backend.PluginContext, query backend.DataQuery) (response backend.DataResponse) {
+	defer func() {
+		if err := recover(); err != nil {
+			log.DefaultLogger.Error("panic occurred ", err)
+			response = backend.ErrDataResponse(backend.StatusInternal, "internal server error")
+		}
+	}()
+	response = d.queryInternal(ctx, pCtx, query)
+	return response
+}
+
+func (d *Datasource) queryInternal(ctx context.Context, pCtx backend.PluginContext, query backend.DataQuery) backend.DataResponse {
 	var response backend.DataResponse
 
 	// Unmarshal the JSON into our queryModel.
