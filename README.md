@@ -17,7 +17,7 @@ It uses [FireQL](https://github.com/pgollangi/FireQL) to capture user query that
 ## Features
 - [x] Use Google Firestore as a data source for Grafana dashboards
 - [x] Configure Firestore data source with GCP `Project Id` and [`Service Account`](https://cloud.google.com/firestore/docs/security/iam) for authentication
-- [x] Store `Service Account` data source configuration in Grafana encrypted storage [Secure JSON Data](https://grafana.com/docs/grafana/latest/developers/plugins/add-authentication-for-data-source-plugins/#encrypt-data-source-configuration)
+- [x] Store `Service Account` data source configuration in Grafana encrypted storage [Secure JSON Data](https://grafana.com/docs/grafana/latest/developers/plugins/create-a-grafana-plugin/extend-a-plugin/add-authentication-for-data-source-plugins/#encrypt-data-source-configuration)
 - [x] Query Firestore [collections](https://firebase.google.com/docs/firestore/data-model#collections) and path to collections
 - [x] Auto detect data types: `string`, `number`, `boolean`, `json`, `time.Time`
 - [x] Query selected fields from the collection
