@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"reflect"
 	"time"
 
 	"cloud.google.com/go/firestore"
@@ -89,6 +90,26 @@ func (d *Datasource) query(ctx context.Context, pCtx backend.PluginContext, quer
 	return response
 }
 
+func convertInt32To64(ar []int32) []float64 {
+	newar := make([]float64, len(ar))
+	var v float32
+	var i int
+	for i, v = range ar {
+		newar[i] = float64(v)
+	}
+	return newar
+}
+
+func convertInt64To64(ar []int64) []float64 {
+	newar := make([]float64, len(ar))
+	var v float32
+	var i int
+	for i, v = range ar {
+		newar[i] = float64(v)
+	}
+	return newar
+}
+
 func (d *Datasource) queryInternal(ctx context.Context, pCtx backend.PluginContext, query backend.DataQuery) backend.DataResponse {
 	var response backend.DataResponse
 
@@ -149,23 +170,44 @@ func (d *Datasource) queryInternal(ctx context.Context, pCtx backend.PluginConte
 						if values == nil {
 							values = []int32{}
 						}
-						values = append(values.([]int32), int32(val.(int)))
+						if reflect.TypeOf(values).Elem().Kind() == reflect.Float64 {
+							values = append(values.([]float64), val.(float64))
+						} else {
+							values = append(values.([]int32), int32(val.(int)))
+						}
 						break
 					case int32:
 						if values == nil {
 							values = []int32{}
 						}
-						values = append(values.([]int32), val.(int32))
+						if reflect.TypeOf(values).Elem().Kind() == reflect.Float64 {
+							values = append(values.([]float64), val.(float64))
+						} else {
+							values = append(values.([]int32), val.(int32))
+						}
 						break
 					case int64:
 						if values == nil {
 							values = []int64{}
 						}
-						values = append(values.([]int64), val.(int64))
+						if reflect.TypeOf(values).Elem().Kind() == reflect.Float64 {
+							values = append(values.([]float64), val.(float64))
+						} else {
+							values = append(values.([]int64), val.(int64))
+						}
 						break
 					case float64:
 						if values == nil {
 							values = []float64{}
+						}
+						if reflect.TypeOf(values).Elem().Kind() == reflect.Int {
+							values = convertInt32To64(values.([]int32))
+						}
+						if reflect.TypeOf(values).Elem().Kind() == reflect.Int32 {
+							values = convertInt32To64(values.([]int32))
+						}
+						if reflect.TypeOf(values).Elem().Kind() == reflect.Int64 {
+							values = convertInt64To64(values.([]int64))
 						}
 						values = append(values.([]float64), val.(float64))
 						break
@@ -189,6 +231,20 @@ func (d *Datasource) queryInternal(ctx context.Context, pCtx backend.PluginConte
 					default:
 						if values == nil {
 							values = []string{}
+						}
+						if val == nil {
+							if reflect.TypeOf(values).Elem().Kind() == reflect.Int {
+								values = append(values.([]int32), 0)
+							}
+							if reflect.TypeOf(values).Elem().Kind() == reflect.Int32 {
+								values = append(values.([]int32), 0)
+							}
+							if reflect.TypeOf(values).Elem().Kind() == reflect.Int64 {
+								values = append(values.([]int64), 0)
+							}
+							if reflect.TypeOf(values).Elem().Kind() == reflect.Float64 {
+								values = append(values.([]float64), 0.0)
+							}
 						}
 						values = append(values.([]string), fmt.Sprintf("%v", val))
 					}
