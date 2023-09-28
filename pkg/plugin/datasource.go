@@ -92,7 +92,7 @@ func (d *Datasource) query(ctx context.Context, pCtx backend.PluginContext, quer
 
 func convertInt32To64(ar []int32) []float64 {
 	newar := make([]float64, len(ar))
-	var v float32
+	var v int32
 	var i int
 	for i, v = range ar {
 		newar[i] = float64(v)
@@ -102,7 +102,7 @@ func convertInt32To64(ar []int32) []float64 {
 
 func convertInt64To64(ar []int64) []float64 {
 	newar := make([]float64, len(ar))
-	var v float32
+	var v int64
 	var i int
 	for i, v = range ar {
 		newar[i] = float64(v)
