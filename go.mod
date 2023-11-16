@@ -5,7 +5,7 @@ go 1.19
 require (
 	cloud.google.com/go/firestore v1.14.0
 	github.com/grafana/grafana-plugin-sdk-go v0.156.0
-	github.com/pgollangi/fireql v0.3.1
+	github.com/pgollangi/fireql v0.3.2
 	golang.org/x/oauth2 v0.14.0
 	google.golang.org/api v0.150.0
 )

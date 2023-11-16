@@ -205,8 +205,8 @@ github.com/oklog/run v1.0.0/go.mod h1:dlhp/R75TPv97u0XWUtDeV/lRKWPKSdTuV0TZvrmrQ
 github.com/olekukonko/tablewriter v0.0.5 h1:P2Ga83D34wi1o9J6Wh1mRuqd4mF/x/lgBS7N7AbDhec=
 github.com/olekukonko/tablewriter v0.0.5/go.mod h1:hPp6KlRPjbx+hW8ykQs1w3UBbZlj6HuIJcUGPhkA7kY=
 github.com/opentracing/opentracing-go v1.1.0/go.mod h1:UkNAQd3GIcIGf0SeVgPpRdFStlNbqXla1AfSYxPUl2o=
-github.com/pgollangi/fireql v0.3.1 h1:+PbQnrhEEJlv7SKBZ4JveAGtOi23RFDmiXejcd8E34E=
-github.com/pgollangi/fireql v0.3.1/go.mod h1:zhAqwcVJ4iCUJpkXYOe+iIqChAA9QjyRUClMvIv+t2E=
+github.com/pgollangi/fireql v0.3.2 h1:uujCgps0q7f4clrlOhdTbPBgDBa+i6cC1T0VJbo3PnY=
+github.com/pgollangi/fireql v0.3.2/go.mod h1:zhAqwcVJ4iCUJpkXYOe+iIqChAA9QjyRUClMvIv+t2E=
 github.com/phpdave11/gofpdf v1.4.2/go.mod h1:zpO6xFn9yxo3YLyMvW8HcKWVdbNqgIfOOp2dXMnm1mY=
 github.com/phpdave11/gofpdi v1.0.12/go.mod h1:vBmVV0Do6hSBHC8uKUQ71JGW+ZGQq74llk/7bXwjDoI=
 github.com/pierrec/lz4/v4 v4.1.8 h1:ieHkV+i2BRzngO4Wd/3HGowuZStgq6QkPsD1eolNAO4=
