@@ -38,6 +38,12 @@ jobs:
             echo "has-backend=true" >> $GITHUB_OUTPUT
           fi
 
+      - name: 'Set up Cloud SDK'
+        if: steps.check-for-backend.outputs.has-backend == 'true'
+        uses: 'google-github-actions/setup-gcloud@v1'
+      - name: Install Google Cloud SDK components
+        if: steps.check-for-backend.outputs.has-backend == 'true'
+        run: yes | gcloud components install beta cloud-firestore-emulator
       - name: Test backend
         if: steps.check-for-backend.outputs.has-backend == 'true'
         uses: magefile/mage-action@v1
