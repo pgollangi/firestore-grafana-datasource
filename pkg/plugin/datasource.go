@@ -267,7 +267,7 @@ func (d *Datasource) CheckHealth(ctx context.Context, req *backend.CheckHealthRe
 		defer client.Close()
 		collections := client.Collections(ctx)
 		collection, err := collections.Next()
-		if err == nil || err == iterator.Done {
+		if err == nil || errors.Is(err, iterator.Done) {
 			log.DefaultLogger.Debug("First collections: ", collection.ID)
 		} else {
 			log.DefaultLogger.Error("client.Collections ", err)
